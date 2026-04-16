@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Моя Корзина</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root { --wb: #6366f1; --ozon: #005bff; --accent: #a855f7; --bg: #f8fafc; --card-bg: white; --text: #1e293b; }
+        body.dark-mode { --bg: #0f172a; --card-bg: #1e293b; --text: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 110px; color: var(--text); transition: 0.3s; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        /* ТВОЯ ФИОЛЕТОВАЯ ШАПКА */
+        header { 
+            background: rgba(99, 102, 241, 0.9); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 20px 20px 25px; color: white; 
+            border-radius: 0 0 30px 30px; text-align: center;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .menu-dots { position: absolute; top: 18px; right: 25px; font-size: 26px; cursor: pointer; color: white; }
+        h1 { margin: 0; font-size: 18px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+        h1 b { font-weight: 800; color: white; }
+
+        .filter-bar { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; }
+        .filter-bar::-webkit-scrollbar { display: none; }
+        .filter-item { padding: 8px 18px; border-radius: 12px; background: var(--card-bg); font-size: 12px; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid rgba(128,128,128,0.1); cursor: pointer; }
+        .filter-item.active { background: var(--wb); color: white; border-color: var(--wb); }
+
+        .stats-bar { background: var(--card-bg); margin: 0 25px 15px; padding: 12px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid rgba(128,128,128,0.1); }
+        .stat-label { font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; }
+        .stat-value { font-size: 15px; font-weight: 800; }
+
+        .card { background: var(--card-bg); margin: 8px 20px; padding: 12px 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 3px; box-shadow: 0 3px 10px rgba(0,0,0,0.02); border: 1px solid rgba(128,128,128,0.08); position: relative; user-select: none; }
+        
+        /* НАЗВАНИЕ МАГАЗИНА СВЕРХУ */
+        .shop-tag { align-self: flex-start; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; background: rgba(128,128,128,0.1); color: #94a3b8; }
+        .tag-wb { background: #f5f3ff !important; color: var(--wb) !important; }
+        .tag-ozon { background: #e0f2fe !important; color: var(--ozon) !important; }
+
+        .card-content { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        .price-val { font-size: 16px; font-weight: 800; margin-left: 10px; }
+        .btn-go { background: #1e293b; color: white; border: none; width: 38px; height: 38px; border-radius: 12px; font-size: 16px; margin-left: 10px; }
+        body.dark-mode .btn-go { background: var(--accent); }
+
+        .fab { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; width: 65px; height: 65px; border-radius: 22px; border: 5px solid var(--bg); font-size: 32px; box-shadow: 0 12px 30px rgba(0,0,0,0.2); z-index: 100; }
+        body.dark-mode .fab { background: var(--accent); }
+
+        #side-menu { display: none; position: fixed; top: 0; right: 0; width: 240px; height: 100%; background: var(--card-bg); z-index: 2000; box-shadow: -10px 0 30px rgba(0,0,0,0.3); padding: 40px 20px; }
+        .menu-item { padding: 15px 0; border-bottom: 1px solid rgba(128,128,128,0.1); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 onclick="setFilter('Все')">МОЯ <b>КОРЗИНА</b></h1>
+    <div class="menu-dots" onclick="toggleMenu()">⋮</div>
+</header>
+
+<div id="side-menu">
+    <div style="font-size: 20px; font-weight: 800; margin-bottom: 25px;" onclick="toggleMenu()">✕</div>
+    <div class="menu-item" onclick="toggleDarkMode()">🌙 Темная тема</div>
+    <div class="menu-item" onclick="clearAll()" style="color: #ef4444;">🗑️ Очистить всё</div>
+</div>
+
+<div class="filter-bar" id="filter-bar"></div>
+
+<div class="stats-bar">
+    <div class="stat-item"><div class="stat-label">Товаров</div><div class="stat-value" id="count-val">0</div></div>
+    <div class="stat-item" style="text-align: right;"><div class="stat-label">Итого</div><div class="stat-value" id="total-val">0 ₽</div></div>
+</div>
+
+<div id="list"></div>
+<button class="fab" onclick="add()">+</button>
+
+<script>
+    let currentFilter = 'Все';
+    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+
+    function setFilter(cat) { currentFilter = cat; updateUI(); }
+    function toggleMenu() { const m = document.getElementById('side-menu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); toggleMenu(); }
+
+    function updateUI() {
+        const items = JSON.parse(localStorage.getItem('my_pro_basket') || '[]');
+        const container = document.getElementById('list');
+        const filterBar = document.getElementById('filter-bar');
+        container.innerHTML = '';
+        
+        const shops = new Set();
+        items.forEach(item => {
+            try {
+                const domain = new URL(item.url).hostname.replace('www.', '');
+                if (domain.includes('wildberries')) shops.add('Wildberries');
+                else if (domain.includes('ozon')) shops.add('Ozon');
+                else shops.add(domain.split('.')[0].toUpperCase());
+            } catch(e) { shops.add('Магазин'); }
+        });
+
+        filterBar.innerHTML = `<div class="filter-item ${currentFilter === 'Все' ? 'active' : ''}" onclick="setFilter('Все')">Все</div>`;
+        shops.forEach(shop => {
+            filterBar.innerHTML += `<div class="filter-item ${currentFilter === shop ? 'active' : ''}" onclick="setFilter('${shop}')">${shop}</div>`;
+        });
+
+        let total = 0, count = 0;
+        items.slice().reverse().forEach(item => {
+            let shopName = "Магазин", tagClass = "";
+            try {
+                const domain = new URL(item.url).hostname.replace('www.', '');
+                if (domain.includes('wildberries')) { shopName = "Wildberries"; tagClass = "tag-wb"; }
+                else if (domain.includes('ozon')) { shopName = "Ozon"; tagClass = "tag-ozon"; }
+                else { shopName = domain.split('.')[0].toUpperCase(); }
+            } catch(e) {}
+
+            if(currentFilter !== 'Все' && shopName !== currentFilter) return;
+
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div class="shop-tag ${tagClass}">${shopName}</div>
+                <div class="card-content">
+                    <div class="info"><div class="name">${item.name}</div><div class="price-val">${Number(item.price).toLocaleString()} ₽</div></div>
+                    <button class="btn-go" onclick="window.open('${item.url}', '_self')">➔</button>
+                </div>`;
+
+            let pressTimer;
+            div.addEventListener('touchstart', () => pressTimer = setTimeout(() => { if(confirm('Удалить?')) del(item.id); }, 800));
+            div.addEventListener('touchend', () => clearTimeout(pressTimer));
+            container.appendChild(div);
+            total += Number(item.price) || 0;
+            count++;
+        });
+        document.getElementById('total-val').innerText = total.toLocaleString() + ' ₽';
+        document.getElementById('count-val').innerText = count;
+    }
+
+    function add() {
+        const url = prompt("Ссылка:");
+        if (!url) return;
+        const name = prompt("Название:");
+        const price = prompt("Цена:");
+        if (name && price) {
+            const items = JSON.parse(localStorage.getItem('my_pro_basket') || '[]');
+            items.push({ id: Date.now(), url, name, price: price.replace(/\D/g, '') });
+            localStorage.setItem('my_pro_basket', JSON.stringify(items));
+            updateUI();
+        }
+    }
+
+    function del(id) {
+        let items = JSON.parse(localStorage.getItem('my_pro_basket') || '[]');
+        items = items.filter(i => i.id !== id);
+        localStorage.setItem('my_pro_basket', JSON.stringify(items));
+        updateUI();
+    }
+
+    function clearAll() { if(confirm('Очистить всё?')) { localStorage.setItem('my_pro_basket', '[]'); currentFilter = 'Все'; updateUI(); toggleMenu(); } }
+
+    updateUI();
+</script>
+</body>
+</html>
